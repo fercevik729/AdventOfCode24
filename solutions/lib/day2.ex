@@ -2,9 +2,9 @@ defmodule Day2 do
   @moduledoc """
   Documentation for `Day2`.
   """
-  def driver do
+  def main(filename) do
     reports =
-      File.stream!("input.txt")
+      File.stream!(filename)
       |> Enum.map(fn report ->
         report
         |> String.trim()

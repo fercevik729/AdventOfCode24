@@ -12,17 +12,9 @@ defmodule DirectionEnum do
   def all, do: @direction
 end
 
-defmodule Utils do
-  def out_of_bounds?(grid, {x, y}) do
-    x < 0 or x >= length(grid) or y < 0 or y >= length(List.first(grid))
-  end
-
-  def val(grid, {x, y}) do
-    Enum.at(grid, x) |> Enum.at(y)
-  end
-end
-
 defmodule Dfs do
+  import Utils.Grid
+
   defp check_next_val("X", "M"), do: true
   defp check_next_val("M", "A"), do: true
   defp check_next_val("A", "S"), do: true
@@ -42,7 +34,7 @@ defmodule Dfs do
     {next_x, next_y} = get_next({x, y}, direction)
     next_pos = {next_x, next_y}
 
-    if Utils.out_of_bounds?(grid, next_pos) do
+    if out_of_bounds?(grid, next_pos) do
       0
     else
       curr_val = Enum.at(grid, x) |> Enum.at(y)
@@ -76,7 +68,7 @@ defmodule Dfs do
 end
 
 defmodule XSearch do
-  import Utils
+  import Utils.Grid
 
   def is_x?(grid, {x, y}) do
     if Enum.at(grid, x) |> Enum.at(y) != "A" do
@@ -135,9 +127,9 @@ defmodule XSearch do
 end
 
 defmodule Day4 do
-  def main do
+  def main(filename) do
     grid =
-      File.stream!("input.txt")
+      File.stream!(filename)
       |> Enum.map(fn line ->
         String.trim(line) |> String.graphemes()
       end)

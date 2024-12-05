@@ -2,9 +2,9 @@ defmodule Day3 do
   @mul_regex ~r/mul\((\d{1,3}),(\d{1,3})\)/
   @toggle_regex ~r/(do\(\)|don't\(\))/
 
-  def driver() do
+  def main(filename) do
     input =
-      File.read!("input.txt")
+      File.read!(filename)
       |> String.replace(~r/\R/, "")
 
     {part1(input), part2(input)}
@@ -19,6 +19,7 @@ defmodule Day3 do
   def part2(line) do
     toggles = Regex.scan(@toggle_regex, line, return: :index)
     ops = Regex.scan(@mul_regex, line, return: :index)
+
     Enum.reduce(ops, 0, fn match, acc ->
       {start_match_idx, _} = hd(match)
 
