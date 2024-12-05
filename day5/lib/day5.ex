@@ -46,14 +46,14 @@ end
 defmodule Day5 do
   @moduledoc """
   `Day5` Print Queue
-  Idea: Use maps to compare.
+  `Part1:` Use maps to store the indices of the numbers in the updates and check against the rules.
+  `Part2:` Sort the invalid updates based on the rules and accumulate the midvals.
   """
 
-  def str_to_num_tuple(str, pattern) do
+  def str_to_num_list(str, pattern) do
     str
     |> String.split(pattern)
     |> Enum.map(&String.to_integer/1)
-    |> List.to_tuple()
   end
 
   @doc """
@@ -62,57 +62,35 @@ defmodule Day5 do
   def valid_ordering?({num, idx}, map, rules) do
     keys = Map.keys(map)
 
-    Enum.filter(rules, fn {dep, child} ->
+    Enum.filter(rules, fn [dep, child] ->
       child == num and Enum.member?(keys, dep)
     end)
-    |> Enum.all?(fn {dep, _} ->
+    |> Enum.all?(fn [dep, _] ->
       map[dep] < idx
-    end)
-  end
-
-  @doc """
-  Sort the update based on the matching rules
-  """
-  def sort_update(update, rules) do
-    ordering =
-      Enum.filter(rules, fn {dep, child} ->
-        Enum.member?(update, child) and Enum.member?(update, dep)
-      end)
-      |> TopSort.sort()
-
-    Enum.reduce(ordering, [], fn num, acc ->
-      if Enum.member?(update, num) do
-        acc ++ [num]
-      else
-        acc
-      end
     end)
   end
 
   def main do
     {_, rules, updates} =
       File.stream!("input.txt")
-      |> Enum.reduce({:rules, [], []}, fn line, acc ->
+      |> Enum.reduce({:rules, [], []}, fn line, {mode, rs, us} ->
         line = String.trim(line)
-        {mode, rules, updates} = acc
 
         case {mode, line} do
           {:rules, ""} ->
-            {:updates, rules, updates}
+            {:updates, rs, us}
 
           {:rules, l} ->
             {:rules,
-             rules ++
-               [str_to_num_tuple(l, "|")], []}
+             rs ++
+               [str_to_num_list(l, "|")], []}
 
           {:updates, l} ->
-            {:updates, rules, updates ++ [str_to_num_tuple(l, ",")]}
+            {:updates, rs, us ++ [str_to_num_list(l, ",")]}
         end
       end)
 
     Enum.reduce(updates, {0, 0}, fn update, {acc1, acc2} ->
-      update = Tuple.to_list(update)
-
       map =
         Enum.with_index(update)
         |> Enum.reduce(%{}, fn {num, idx}, acc ->
@@ -125,7 +103,9 @@ defmodule Day5 do
         {acc1 + Enum.at(update, div(length(update), 2)), acc2}
         # PART 2: Accumulate the midvals of the invalid orderings after sorting
       else
-        {acc1, acc2 + Enum.at(sort_update(update, rules), div(length(update), 2))}
+        Enum.sort(update, fn a, b -> Enum.member?(rules, [a, b]) end)
+        |> Enum.at(div(length(update), 2))
+        |> then(fn midval -> {acc1, acc2 + midval} end)
       end
     end)
   end
