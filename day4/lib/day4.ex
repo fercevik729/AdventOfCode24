@@ -89,6 +89,8 @@ defmodule XSearch do
   defp check_vals(grid, vals) do
     [a1, a2, b1, b2] = vals
 
+    # Make sure the corners of the X are in bounds and not
+    # X or A
     if(
       Enum.any?([a1, a2, b1, b2], fn {x, y} ->
         invalid = out_of_bounds?(grid, {x, y})
