@@ -6,4 +6,20 @@ defmodule Utils.Grid do
   def val(grid, {x, y}) do
     Enum.at(grid, x) |> Enum.at(y)
   end
+
+  def find(grid, target) do
+    Enum.with_index(grid)
+    |> Enum.reduce_while(nil, fn {row, row_index}, _acc ->
+      case Enum.find_index(row, &(&1 == target)) do
+        nil -> {:cont, nil}
+        col_index -> {:halt, {row_index, col_index}}
+      end
+    end)
+  end
+
+  def update(grid, {row, col}, value) do
+    List.update_at(grid, row, fn row_list ->
+      List.update_at(row_list, col, fn _ -> value end)
+    end)
+  end
 end
