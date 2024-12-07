@@ -22,18 +22,26 @@ defmodule Day6 do
         is_cycle(grid, {r, c}, start_pos)
       end
     end)
+    |> Enum.sum()
   end
 
   def is_cycle(grid, {r, c}, start_pos) do
     grid = Grid.update(grid, {r, c}, ?#)
-    {status, _} = get_guard_moves(MapSet.new(), grid, {MapSet.new([start_pos]), start_pos, :up})
+
+    {status, _} =
+      get_guard_moves(
+        MapSet.new([{start_pos, :up}]),
+        grid,
+        {MapSet.new([start_pos]), start_pos, :up}
+      )
+
     if status == :cycle, do: 1, else: 0
   end
 
   def part1(grid) do
     start_pos = Grid.find(grid, ?^)
     visited = MapSet.new([start_pos])
-    {_, moves} = get_guard_moves(MapSet.new(), grid, {visited, start_pos, :up})
+    {_, moves} = get_guard_moves(MapSet.new([{start_pos, :up}]), grid, {visited, start_pos, :up})
     Enum.count(moves)
   end
 
@@ -53,7 +61,7 @@ defmodule Day6 do
         get_guard_moves(seen_states, grid, {visited, {r, c}, next_direction(direction)})
       else
         next_visited = MapSet.put(visited, next)
-        next_state = {visited, {r, c}}
+        next_state = {next, direction}
 
         # Check if we've been at this state before, if so we have a cycle
         if MapSet.member?(seen_states, next_state) do
