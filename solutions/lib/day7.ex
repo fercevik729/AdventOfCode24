@@ -1,4 +1,6 @@
 defmodule Day7 do
+  import Utils.Misc
+
   def backtrack({res, ops}, fns), do: backtrack({res, ops}, Enum.at(ops, 0), 1, fns)
 
   def backtrack({res, ops}, acc, i, _) when i == length(ops), do: res == acc
@@ -10,11 +12,6 @@ defmodule Day7 do
     |> then(fn x ->
       Enum.any?(Enum.map(fns, fn f -> backtrack({res, ops}, f.(acc, x), i + 1, fns) end))
     end)
-  end
-
-  def concat_digits(curr, new) do
-    (Integer.to_string(curr) <> Integer.to_string(new))
-    |> String.to_integer()
   end
 
   def main(filename) do
