@@ -2,7 +2,7 @@ defmodule Solutions do
   @moduledoc """
   Documentation for `Solutions`.
   """
-  @current_day 5
+  @current_day 7
 
   def run_one(day) when day < 1 do
     IO.puts("Day #{day} is not a valid day!")
