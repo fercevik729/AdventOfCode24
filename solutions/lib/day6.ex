@@ -58,7 +58,7 @@ defmodule Day6 do
       {:ok, visited}
     else
       if Grid.val(grid, next) == ?# do
-        get_guard_moves(seen_states, grid, {visited, {r, c}, next_direction(direction)})
+        get_guard_moves(seen_states, grid, {visited, {r, c}, rotate(direction)})
       else
         next_visited = MapSet.put(visited, next)
         next_state = {next, direction}
@@ -77,8 +77,8 @@ defmodule Day6 do
     end
   end
 
-  defp next_direction(:up), do: :right
-  defp next_direction(:right), do: :down
-  defp next_direction(:down), do: :left
-  defp next_direction(:left), do: :up
+  defp rotate(:up), do: :right
+  defp rotate(:right), do: :down
+  defp rotate(:down), do: :left
+  defp rotate(:left), do: :up
 end
