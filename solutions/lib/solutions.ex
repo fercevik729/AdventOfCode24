@@ -21,10 +21,16 @@ defmodule Solutions do
     if day > current_day() do
       IO.puts("Day #{day} has not been released yet!")
     else
-      module_name = "Day#{day}"
-      module = String.to_existing_atom("Elixir.#{module_name}")
-      {part1, part2} = module.main("inputs/day#{day}.txt")
-      IO.puts("Day #{day} Part 1: #{part1}, Part2: #{part2}")
+      module_name = "Elixir.Day#{day}"
+
+      try do
+        module = String.to_existing_atom(module_name)
+        {part1, part2} = module.main("inputs/day#{day}.txt")
+        IO.puts("Day #{day} Part 1: #{part1}, Part2: #{part2}")
+      rescue
+        ArgumentError ->
+          {:error, "Day #{day} has not been completed yet"}
+      end
     end
   end
 
