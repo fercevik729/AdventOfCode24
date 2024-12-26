@@ -1,4 +1,6 @@
 defmodule Day9 do
+  import Utils.Misc
+
   def main(filename) do
     input =
       File.read!(filename)
@@ -31,23 +33,12 @@ defmodule Day9 do
       |> Enum.sort()
       |> Enum.reverse()
 
-    res =
-      Enum.reduce(to_swap, diskmap, fn pos, newmap ->
-        # IO.inspect(newmap, charlist: :as_lists)
-        {_, size} = Map.get(newmap, pos)
+    compmap =
+      Enum.reduce(to_swap, diskmap, &swap_with_leftmost/2)
 
-        target =
-          find_leftmost_free_space(newmap, size, pos)
-
-        case target do
-          nil -> newmap
-          _ -> swap_blocks(newmap, target, pos)
-        end
-      end)
-
-    Map.keys(res)
+    Map.keys(compmap)
     |> Enum.reduce(0, fn pos, acc ->
-      {id, offset} = Map.get(res, pos)
+      {id, offset} = Map.get(compmap, pos)
 
       case id do
         -1 -> acc
@@ -56,28 +47,33 @@ defmodule Day9 do
     end)
   end
 
-  defp find_leftmost_free_space(diskmap, blocksize, blockpos) do
-    diskmap
-    |> Map.keys()
-    |> Enum.sort()
-    |> Enum.drop_while(fn key ->
-      {val, bsize} = Map.get(diskmap, key)
-      key > blockpos or val != -1 or bsize < blocksize
-    end)
-    |> List.first()
-  end
+  defp swap_with_leftmost(blockpos, diskmap) do
+    {id, blocksize} = Map.get(diskmap, blockpos)
 
-  defp swap_blocks(diskmap, to_key, from_key) do
-    {_, free_space} = Map.get(diskmap, to_key)
-    {id, block_space} = Map.get(diskmap, from_key)
-    diff = free_space - block_space
+    target =
+      diskmap
+      |> Map.keys()
+      |> Enum.sort()
+      |> Enum.drop_while(fn key ->
+        {val, bsize} = Map.get(diskmap, key)
+        key > blockpos or val != -1 or bsize < blocksize
+      end)
+      |> List.first()
 
-    # IO.puts("Swapping #{from_key} with #{to_key}")
+    case target do
+      nil ->
+        diskmap
 
-    newmap =
-      Map.put(diskmap, from_key, {-1, block_space}) |> Map.put(to_key, {id, block_space})
+      _ ->
+        {_, free_space} = Map.get(diskmap, target)
+        diff = free_space - blocksize
 
-    if diff > 0, do: Map.put(newmap, to_key + block_space, {-1, diff}), else: newmap
+        newmap =
+          Map.put(diskmap, blockpos, {-1, blocksize}) |> Map.put(target, {id, blocksize})
+
+        # Handle case for which free space > block size
+        if diff > 0, do: Map.put(newmap, target + blocksize, {-1, diff}), else: newmap
+    end
   end
 
   def part1(input) do
@@ -108,12 +104,6 @@ defmodule Day9 do
     |> Enum.with_index()
     |> Enum.map(fn {val, idx} -> val * idx end)
     |> Enum.sum()
-  end
-
-  def repeat_n(_, 0), do: []
-
-  def repeat_n(item, times) do
-    Enum.map(1..times, fn _ -> item end)
   end
 
   def find_last_idx(enumerable, pred) do
