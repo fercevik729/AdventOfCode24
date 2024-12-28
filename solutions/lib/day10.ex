@@ -73,13 +73,6 @@ defmodule Day10 do
     end
   end
 
-  defp directions(), do: [:up, :down, :left, :right]
-
-  defp get_next({r, c}, :up), do: {r - 1, c}
-  defp get_next({r, c}, :down), do: {r + 1, c}
-  defp get_next({r, c}, :left), do: {r, c - 1}
-  defp get_next({r, c}, :right), do: {r, c + 1}
-
   defp find_trailheads(grid) do
     Enum.with_index(grid)
     |> Enum.reduce([], fn {row, r}, acc ->

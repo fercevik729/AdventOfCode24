@@ -20,18 +20,18 @@ defmodule Dfs do
   defp check_next_val("A", "S"), do: true
   defp check_next_val(_, _), do: false
 
-  defp get_next({r, c}, :up), do: {r - 1, c}
-  defp get_next({r, c}, :down), do: {r + 1, c}
-  defp get_next({r, c}, :left), do: {r, c - 1}
-  defp get_next({r, c}, :right), do: {r, c + 1}
-  defp get_next({r, c}, :upperLeftDiag), do: {r - 1, c - 1}
-  defp get_next({r, c}, :upperRightDiag), do: {r - 1, c + 1}
-  defp get_next({r, c}, :lowerLeftDiag), do: {r + 1, c - 1}
-  defp get_next({r, c}, :lowerRightDiag), do: {r + 1, c + 1}
+  defp get_next_pos({r, c}, :up), do: {r - 1, c}
+  defp get_next_pos({r, c}, :down), do: {r + 1, c}
+  defp get_next_pos({r, c}, :left), do: {r, c - 1}
+  defp get_next_pos({r, c}, :right), do: {r, c + 1}
+  defp get_next_pos({r, c}, :upperLeftDiag), do: {r - 1, c - 1}
+  defp get_next_pos({r, c}, :upperRightDiag), do: {r - 1, c + 1}
+  defp get_next_pos({r, c}, :lowerLeftDiag), do: {r + 1, c - 1}
+  defp get_next_pos({r, c}, :lowerRightDiag), do: {r + 1, c + 1}
 
   # Recursive DFS
   defp dfs(grid, {x, y}, direction) do
-    {next_x, next_y} = get_next({x, y}, direction)
+    {next_x, next_y} = get_next_pos({x, y}, direction)
     next_pos = {next_x, next_y}
 
     if out_of_bounds?(grid, next_pos) do

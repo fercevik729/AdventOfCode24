@@ -22,4 +22,11 @@ defmodule Utils.Grid do
       List.update_at(row_list, col, fn _ -> value end)
     end)
   end
+
+  def directions(), do: [:up, :down, :left, :right]
+
+  def get_next({r, c}, :up), do: {r - 1, c}
+  def get_next({r, c}, :down), do: {r + 1, c}
+  def get_next({r, c}, :left), do: {r, c - 1}
+  def get_next({r, c}, :right), do: {r, c + 1}
 end
