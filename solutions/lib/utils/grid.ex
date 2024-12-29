@@ -7,6 +7,13 @@ defmodule Utils.Grid do
     Enum.at(grid, x) |> Enum.at(y)
   end
 
+  def safe_val(grid, {x, y}) do
+    case out_of_bounds?(grid, {x, y}) do
+      true -> {:error, nil}
+      _ -> {:ok, Enum.at(grid, x) |> Enum.at(y)}
+    end
+  end
+
   def find(grid, target) do
     Enum.with_index(grid)
     |> Enum.reduce_while(nil, fn {row, row_index}, _acc ->
@@ -24,9 +31,15 @@ defmodule Utils.Grid do
   end
 
   def directions(), do: [:up, :down, :left, :right]
+  def diagonals(), do: [:upleft, :upright, :downleft, :downright]
 
   def get_next({r, c}, :up), do: {r - 1, c}
   def get_next({r, c}, :down), do: {r + 1, c}
   def get_next({r, c}, :left), do: {r, c - 1}
   def get_next({r, c}, :right), do: {r, c + 1}
+
+  def get_next({r, c}, :upleft), do: {r - 1, c - 1}
+  def get_next({r, c}, :upright), do: {r - 1, c + 1}
+  def get_next({r, c}, :downleft), do: {r + 1, c - 1}
+  def get_next({r, c}, :downright), do: {r + 1, c + 1}
 end
