@@ -2,29 +2,34 @@ defmodule Day15 do
   import Utils.Grid
 
   defmodule Part2 do
-    defstruct boxes: %{}, robot: {0, 0}, walls: MapSet.new()
+    defstruct boxes: [], robot: {0, 0}, walls: MapSet.new()
 
-    defp move_double_box(
-           %Part2{boxes: boxes} = warehouse,
-           {{a_r, a_c} = a, {b_r, b_c} = b},
-           dir
-         ) do
-      {r_offset, c_offset} = get_next(dir)
-      new_a = {a_r + r_offset, a_c + c_offset}
-      new_b = {b_r + r_offset, b_c + c_offset}
-
-      boxes = if Map.get(boxes, a) == b, do: Map.delete(boxes, a)
-      boxes = if Map.get(boxes, b) == a, do: Map.delete(boxes, b)
-
+    def find_box(%Part2{boxes: boxes}, edge) do
       boxes
-      |> Map.put(new_a, new_b)
-      |> Map.put(new_b, new_a)
-      |> then(fn x ->
-        %Part2{warehouse | boxes: x}
-      end)
+      |> Enum.find(fn {l, r} -> l == edge or r == edge end)
     end
 
-    defp add_elem(warehouse, elem, {r, c}) do
+    def box_exists?(warehouse, edge) do
+      find_box(warehouse, edge) != nil
+    end
+
+    defp update_box(%Part2{boxes: boxes} = warehouse, old, new) do
+      %Part2{
+        warehouse
+        | boxes:
+            Enum.reduce(boxes, [], fn b, acc ->
+              acc ++
+                [
+                  case b do
+                    ^old -> new
+                    _ -> b
+                  end
+                ]
+            end)
+      }
+    end
+
+    defp add_elem(%Part2{boxes: boxes} = warehouse, elem, {r, c}) do
       case elem do
         "#" ->
           %Part2{
@@ -35,7 +40,7 @@ defmodule Day15 do
         "O" ->
           %Part2{
             warehouse
-            | boxes: Map.put(warehouse.boxes, {r, c}, {r, c + 1}) |> Map.put({r, c + 1}, {r, c})
+            | boxes: boxes ++ [{{r, c}, {r, c + 1}}]
           }
 
         "@" ->
@@ -55,13 +60,13 @@ defmodule Day15 do
           Enum.reduce(0..(max_rows * 2 - 1), "", fn c, acc ->
             acc <>
               cond do
-                Map.get(warehouse.boxes, {r, c}) != nil ->
-                  prev = Map.get(warehouse.boxes, {r, c - 1})
+                box_exists?(warehouse, {r, c}) ->
+                  {prev, _} = find_box(warehouse, {r, c})
 
                   if prev == {r, c} do
-                    "]"
-                  else
                     "["
+                  else
+                    "]"
                   end
 
                 MapSet.member?(warehouse.walls, {r, c}) ->
@@ -87,8 +92,8 @@ defmodule Day15 do
         MapSet.member?(walls, {r, c}) ->
           {:halt, nil}
 
-        Map.has_key?(boxes, {r, c}) ->
-          {b_r, b_c} = Map.get(boxes, {r, c})
+        box_exists?(warehouse, {r, c}) ->
+          {{r, c}, {b_r, b_c}} = find_box(warehouse, {r, c})
           {r_ofs, c_ofs} = get_next(dir)
           # IO.puts("Box edges = (#{r}, #{c}) and (#{b_r}, #{b_c})")
           res = MapSet.new([{r, c}, {b_r, b_c}])
@@ -137,18 +142,6 @@ defmodule Day15 do
       end
     end
 
-    defp get_boxes(%Part2{boxes: boxes}, stack) do
-      Enum.reduce(stack, MapSet.new(), fn {_, a_c} = edge, acc ->
-        {b_r, b_c} = Map.get(boxes, edge)
-
-        if(b_c < a_c,
-          do: {{b_r, b_c}, edge},
-          else: {edge, {b_r, b_c}}
-        )
-        |> then(&MapSet.put(acc, &1))
-      end)
-    end
-
     def move_robot(
           %Part2{robot: robot_pos, walls: walls, boxes: boxes} = warehouse,
           move
@@ -167,7 +160,7 @@ defmodule Day15 do
         MapSet.member?(walls, next_pos) ->
           warehouse
 
-        Map.has_key?(boxes, next_pos) ->
+        box_exists?(warehouse, next_pos) ->
           {status, stack} = get_stack(warehouse, {:ok, next_pos}, direction)
 
           case status do
@@ -177,22 +170,38 @@ defmodule Day15 do
             :ok ->
               # IO.inspect(stack)
 
+              start_boxes =
+                Enum.reduce(stack, MapSet.new(), fn b, acc ->
+                  MapSet.put(acc, find_box(warehouse, b))
+                end)
+
+              {r_ofs, c_ofs} = get_next(direction)
+
+              new_boxes =
+                Enum.reduce(start_boxes, MapSet.new(), fn {{a_r, a_c}, {b_r, b_c}}, acc ->
+                  MapSet.put(acc, {{a_r + r_ofs, a_c + c_ofs}, {b_r + r_ofs, b_c + c_ofs}})
+                end)
+
+              # IO.puts("Have to move following boxes:")
+              # IO.inspect(start_boxes)
+
+              to_remove = MapSet.difference(start_boxes, new_boxes)
+              to_add = MapSet.difference(new_boxes, start_boxes)
+
               boxes =
-                stack
-                |> then(&get_boxes(warehouse, &1))
-
-              IO.puts("Have to move following boxes:")
-              IO.inspect(boxes)
-
-              new_warehouse =
-                boxes
-                |> Enum.reduce(warehouse, &move_double_box(&2, &1, direction))
-
-              # IO.inspect(new_warehouse.boxes)
+                Enum.reduce(boxes, [], fn b, acc ->
+                  if MapSet.member?(to_remove, b) do
+                    acc
+                  else
+                    acc ++ [b]
+                  end
+                end)
+                |> Enum.concat(to_add)
 
               %Part2{
-                new_warehouse
-                | robot: next_pos
+                warehouse
+                | robot: next_pos,
+                  boxes: boxes
               }
           end
 
@@ -222,20 +231,25 @@ defmodule Day15 do
         |> String.graphemes()
         |> Enum.with_index()
 
-      display(warehouse, max_rows)
+      # display(warehouse, max_rows)
 
-      Enum.reduce(moves, warehouse, fn {m, idx}, acc ->
-        IO.puts("Move #{idx}: #{m}")
-        acc = move_robot(acc, m)
-        # IO.puts("Boxes:")
-        # IO.inspect(acc.boxes)
-        # IO.puts("--------")
-        display(acc, max_rows)
-        acc
+      final =
+        Enum.reduce(moves, warehouse, fn {m, idx}, acc ->
+          # IO.puts("Move #{idx}: #{m}")
+          acc = move_robot(acc, m)
+          # IO.puts("Boxes:")
+          # IO.inspect(acc.boxes)
+          # IO.puts("--------")
+          # display(acc, max_rows)
+          acc
+        end)
+
+      display(final, max_rows)
+
+      final.boxes
+      |> Enum.reduce(0, fn {{a_r, a_c}, _}, acc ->
+        acc + a_r * 100 + a_c
       end)
-
-      # warehouse
-      {:ok}
     end
   end
 
