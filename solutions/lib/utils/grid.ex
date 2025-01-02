@@ -33,6 +33,8 @@ defmodule Utils.Grid do
   def directions(), do: [:up, :down, :left, :right]
   def diagonals(), do: [:upleft, :upright, :downleft, :downright]
 
+  def get_next(dir), do: get_next({0, 0}, dir)
+
   def get_next({r, c}, :up), do: {r - 1, c}
   def get_next({r, c}, :down), do: {r + 1, c}
   def get_next({r, c}, :left), do: {r, c - 1}

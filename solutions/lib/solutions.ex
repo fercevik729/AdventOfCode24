@@ -44,8 +44,8 @@ defmodule Solutions do
   @impl true
   def start(_type, _args) do
     IO.puts("Enter a day:")
-    day = IO.gets("> ") |> String.trim() |> String.to_integer()
-    run_one(day)
+    # day = IO.gets("> ") |> String.trim() |> String.to_integer()
+    run_one(15)
     {:ok, self()}
   end
 end
