@@ -44,9 +44,8 @@ defmodule Solutions do
   @impl true
   def start(_type, _args) do
     IO.puts("Enter a day:")
-    # day = IO.gets("> ") |> String.trim() |> String.to_integer()
-    # run_one(day)
-    Day16.part1("inputs/day16.txt")
+    day = IO.gets("> ") |> String.trim() |> String.to_integer()
+    run_one(day)
     {:ok, self()}
   end
 end

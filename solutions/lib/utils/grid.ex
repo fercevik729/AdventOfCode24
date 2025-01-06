@@ -33,14 +33,16 @@ defmodule Utils.Grid do
   def directions(), do: [:up, :down, :left, :right]
   def diagonals(), do: [:upleft, :upright, :downleft, :downright]
 
-  def rotations(dir_a, dir_b) when dir_a == dir_b, do: 0
-  def rotations(:up, :down), do: 2
-  def rotations(:down, :up), do: 2
 
-  def rotations(:left, :right), do: 2
-  def rotations(:right, :left), do: 2
+  def rotate_left(:up), do: :left
+  def rotate_left(:left), do: :down
+  def rotate_left(:down), do: :right
+  def rotate_left(:right), do: :up
 
-  def rotations(_, _), do: 1
+  def rotate_right(:up), do: :right
+  def rotate_right(:right), do: :down
+  def rotate_right(:down), do: :left
+  def rotate_right(:left), do: :up
 
   def get_next(dir), do: get_next({0, 0}, dir)
 
@@ -53,4 +55,9 @@ defmodule Utils.Grid do
   def get_next({r, c}, :upright), do: {r - 1, c + 1}
   def get_next({r, c}, :downleft), do: {r + 1, c - 1}
   def get_next({r, c}, :downright), do: {r + 1, c + 1}
+
+  def opposite(:up), do: :down
+  def opposite(:down), do: :up
+  def opposite(:left), do: :right
+  def opposite(:right), do: :left
 end
